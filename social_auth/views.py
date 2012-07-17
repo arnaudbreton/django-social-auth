@@ -72,12 +72,15 @@ def auth_process(request, backend):
     """Authenticate using social backend"""
     # Save any defined next value into session
     data = request.POST if request.method == 'POST' else request.GET
-    if REDIRECT_FIELD_NAME in data:
-        # Check and sanitize a user-defined GET/POST next field value
-        redirect = data[REDIRECT_FIELD_NAME]
-        if setting('SOCIAL_AUTH_SANITIZE_REDIRECTS', True):
-            redirect = sanitize_redirect(request.get_host(), redirect)
-        request.session[REDIRECT_FIELD_NAME] = redirect or DEFAULT_REDIRECT
+    for field in data:
+        if field == REDIRECT_FIELD_NAME:
+            # Check and sanitize a user-defined GET/POST next field value
+            redirect = data[REDIRECT_FIELD_NAME]
+            if setting('SOCIAL_AUTH_SANITIZE_REDIRECTS', True):
+                redirect = sanitize_redirect(request.get_host(), redirect)
+            request.session[REDIRECT_FIELD_NAME] = redirect or DEFAULT_REDIRECT
+        else:
+            request.session[field] = data[field]
 
     # Clean any partial pipeline info before starting the process
     clean_partial_pipeline(request)
